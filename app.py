@@ -1,39 +1,58 @@
 # Server file
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
+from collegeDAO import collegeDAO
 
+from logging.config import dictConfig
 
-app = Flask(__name__)
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
+# Define flask app and session secret key
+app = Flask(__name__, static_url_path='', static_folder='static', template_folder='templates')
+app.secret_key = '4yiYAJa6sJe1xBw8UPHtq4oAAz0ynFCg'
 
-app.secret_key = 'your secret key'
-
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'myNlinC72'
-app.config['MYSQL_DB'] = 'dataRep'
-
-mysql = MySQL(app)
+#mysql = MySQL(app)
 
 @app.route('/')
+# Login route
+# Code adapted from https://www.geeksforgeeks.org/login-and-registration-project-using-flask-and-mysql/
 @app.route('/login', methods =['GET', 'POST'])
 def login():
 	msg = ''
 	if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
 		email = request.form['email']
 		password = request.form['password']
-		cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-		cursor.execute('SELECT * FROM students WHERE email = % s AND password = % s', (email, password, ))
-		account = cursor.fetchone()
+		data = [
+      		email, password
+      		
+		]
+		#app.logger.info('got IDs')
+		account = collegeDAO.verify(data)
+		#app.logger.info('veryfied')
 		if account:
 			session['loggedin'] = True
 			session['id'] = account['studentID']
-			session['username'] = account['email']
+			session['username'] = account['firstname']
 			msg = 'Logged in successfully !'
 			return render_template('index.html', msg = msg)
+			#return redirect(url_for('index',name = session['username']))
 		else:
 			msg = 'Incorrect username / password !'
 	return render_template('login.html', msg = msg)
@@ -47,27 +66,39 @@ def logout():
 
 @app.route('/register', methods =['GET', 'POST'])
 def register():
+	app.logger.info('in register')
 	msg = ''
-	if request.method == 'POST' and 'email' in request.form and 'password' in request.form :
-		#username = request.form['username']
+	if request.method == 'POST' and 'email' in request.form and 'password' in request.form and 'firstname'  in request.form and 'lastname'  in request.form:
+		app.logger.info('first if')
 		email = request.form['email']
 		password = request.form['password']
-		
-		cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-		cursor.execute('SELECT * FROM students WHERE email = % s', (email, ))
-		account = cursor.fetchone()
+		firstname = request.form['firstname']
+		lastname = request.form['lastname']
+		gender = request.form.get('gender', '')
+		dob = request.form['dob']
+		check = [email]
+		account = collegeDAO.checkEmail(check)
 		if account:
-			msg = 'Account already exists !'
+			msg = 'Account already exists!'
 		elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-			msg = 'Invalid email address !'
-		#elif not re.match(r'[A-Za-z0-9]+', username):
-			#msg = 'Username must contain only characters and numbers !'
-		elif not password or not email:
-			msg = 'Please fill out the form !'
+			msg = 'Invalid email address!'
+		#elif not re.match(r'[A-Za-z]+', firstname):
+			#msg = 'First name must contain only characters!'
+		#elif not re.match(r'[A-Za-z]+', lastname):
+			#msg = 'Last name must contain only characters!'
+		elif not password or not email or not firstname or not lastname or not gender or not dob:
+			msg = 'Please fill out all the fields!'
 		else:
-			cursor.execute('INSERT INTO students VALUES (NULL, % s, % s)', ( email, password, ))
-			mysql.connection.commit()
-			msg = 'You have successfully registered !'
+			data = [email, password, firstname, lastname, gender, dob]
+			app.logger.info('passing details')
+			account = collegeDAO.createStudent(data)
+			msg = 'You have successfully registered!'
+			render_template('register.html', msg = msg)
+			#return redirect(url_for('login'), msg = msg)
 	elif request.method == 'POST':
-		msg = 'Please fill out the form !'
+		msg = 'Please fill out the form!'
+		
 	return render_template('register.html', msg = msg)
+
+if __name__ == "__main__":
+    app.run(debug=True)

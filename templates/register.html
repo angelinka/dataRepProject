@@ -1,24 +1,35 @@
-<!-- Store this code in 'register.html' file inside the 'templates' folder -->
+<!-- Registration page with form -->
 
 <html>
 	<head>
 		<meta charset="UTF-8">
 		<title> Register </title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">			
+		<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>			
 	</head>
-	<body></br></br></br></br></br>
+	<body></br></br>
 		<div align="center">
 		<div align="center" class="border">
 			<div class="header">
 				<h1 class="word">Register</h1>
-			</div></br></br></br>
+			</div>
 			<h2 class="word">
+				<!--{% if msg %}
+        			<p>{{ msg }}</p>
+    			{% endif %}-->
 				<form action="{{ url_for('register') }}" method="post">
-				<div class="msg">{{ msg }}</div>
-					<input id="email" name="email" type="email" placeholder="Enter Your Email ID" class="textbox"/></br></br>
-				<!--	<input id="username" name="username" type="text" placeholder="Enter Your Username" class="textbox"/></br></br> -->
-					<input id="password" name="password" type="password" placeholder="Enter Your Password" class="textbox"/></br></br>
-					
+				<div class="msg">{{ msg }}</div></br>
+					<input id="email" name="email" type="email" placeholder="Email" class="textbox"/></br></br>
+					<input id="password" name="password" type="password" placeholder="Password" class="textbox"/></br></br>
+					<input id="firstname" name="firstname" type="text" placeholder="First name" class="textbox"/></br></br>
+					<input id="lastname" name="lastname" type="text" placeholder="Last name" class="textbox"/></br></br>
+					<input type="radio" id="male" name="gender" value="male">
+					<label for="male">Male</label>&nbsp; &nbsp; &nbsp; 
+					<input type="radio" id="female" name="gender" value="female">
+					<label for="female">Female</label><br></br>
+					<label for="birthday">Date of birth:</label>
+  					<input type="date" id="dob" name="dob"></br></br>
+
 					<input type="submit" class="btn" value="Sign Up"></br>
 				</form>
 			</h2>

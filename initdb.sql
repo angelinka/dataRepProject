@@ -15,21 +15,21 @@ CREATE TABLE IF NOT EXISTS students(
    studentID INT NOT NULL AUTO_INCREMENT,
    email varchar(255) NOT NULL,
    password varchar(255) NOT NULL, 
-   -- firstName varchar(255) DEFAULT NULL,
-   -- lastName varchar(255) DEFAULT NULL,
-   -- gender ENUM('male', 'female') NOT NULL,
-   -- dob DATE DEFAULT NULL,
-   -- moduleCode VARCHAR(255) DEFAULT NULL,
+   firstname varchar(255) NOT NULL,
+   lastname varchar(255) NOT NULL,
+   gender ENUM('male', 'female') NOT NULL,
+   dob DATE DEFAULT NULL,
+   modulecode VARCHAR(255) DEFAULT NULL,
    PRIMARY KEY (studentID)
-   -- CONSTRAINT FK_ModuleStudent
-   -- FOREIGN KEY (moduleCode) REFERENCES modules(moduleCode)
-   -- ON DELETE RESTRICT
+   CONSTRAINT FK_ModuleStudent
+   FOREIGN KEY (moduleCode) REFERENCES modules(moduleCode)
+   ON DELETE RESTRICT
    );    
 
 
 
-INSERT INTO students (email, password, firstName, lastName, gender, dob) VALUES ("john.doe@mail.com", "zxcv", "John", "Doe", "male", "2006-08-23");
-INSERT INTO students (email, password, firstName, lastName, gender, dob) VALUES ("mary.gil@mail.com", "asdf", "Mary", "Gilmore", "female", "2003-03-15");
+INSERT INTO students (email, password, firstname, lastname, gender, dob) VALUES ("john.doe@mail.com", "zxcv", "John", "Doe", "male", "2006-08-23");
+INSERT INTO students (email, password, firstname, lastname, gender, dob) VALUES ("mary.gil@mail.com", "asdf", "Mary", "Gilmore", "female", "2003-03-15");
 
 INSERT INTO modules (moduleCode, moduleName, location, credits) 
 VALUES 
@@ -42,3 +42,4 @@ VALUES
 ("CS6422 ", "Complex Systems Development ", "Dublin", 10);
 
 drop table students;
+select * from students;

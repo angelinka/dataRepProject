@@ -1,52 +1,71 @@
 /* Store this code in 'style.css' file inside the 'static' folder*/
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap') */
 
 .header{
     padding: 5px 120px;
     width: 150px;
     height: 70px;
-    background-color: #236B8E;
+    background-color: #FFFFFF;
 }
 
+body {
+    background-color: #3853bf;
+    margin: 0;
+}
 .border{
     padding: 80px 50px;
     width: 400px;
-    height: 450px;
+    height: 560px;
     border: 1px solid #236B8E;
-    border-radius: 0px;
-    background-color: #9AC0CD;
+    border-radius: 10px;
+    background-color: #FFFFFF;
 }
 
 .btn {
     padding: 10px 40px;
-    background-color: #236B8E;
+    background-color: #3853bf;
     color: #FFFFFF;
     font-style: oblique;
     font-weight: bold;
     border-radius: 10px;
 }
 
+label {
+    color: #3853bf;
+    font-family: Arial, sans-serif;
+    font-style: normal;
+    font-size: 16px;
+    
+}
 .textbox{
     padding: 10px 40px;
-    background-color: #236B8E;
-    text-color: #FFFFFF;
+    background-color: #FFFFFF;
+    text-color: #3853bf;
     border-radius: 10px;
 }
     
 ::placeholder {
-    color: #FFFFFF;
+    color: #3853bf;
     opacity: 1;
     font-style: oblique;
     font-weight: bold;
 }
 
 .word{
-    color: #FFFFFF;
+    color: #3853bf;
     font-style: oblique;
     font-weight: bold;
 }
 
+.msg{
+    color: #ed381c;
+    font-family: Arial, sans-serif;
+    font-style: bold;
+    font-size: 16px;
+}
+
 .bottom{
-    color: #236B8E;
+    color: #3853bf;
     font-style: oblique;
     font-weight: bold;
 }
