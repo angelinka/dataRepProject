@@ -1,6 +1,6 @@
 # Server file
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -28,9 +28,13 @@ dictConfig({
 app = Flask(__name__, static_url_path='', static_folder='static', template_folder='templates')
 app.secret_key = '4yiYAJa6sJe1xBw8UPHtq4oAAz0ynFCg'
 
-#mysql = MySQL(app)
 
 @app.route('/')
+def index():
+   if not 'username' in session:
+      return redirect(url_for('login'))
+
+   return render_template('index.html', title='Index', name = session['username'])
 # Login route
 # Code adapted from https://www.geeksforgeeks.org/login-and-registration-project-using-flask-and-mysql/
 @app.route('/login', methods =['GET', 'POST'])
@@ -43,7 +47,6 @@ def login():
       		email, password
       		
 		]
-		#app.logger.info('got IDs')
 		account = collegeDAO.verify(data)
 		#app.logger.info('veryfied')
 		if account:
@@ -51,8 +54,8 @@ def login():
 			session['id'] = account['studentID']
 			session['username'] = account['firstname']
 			msg = 'Logged in successfully !'
-			return render_template('index.html', msg = msg)
-			#return redirect(url_for('index',name = session['username']))
+			#return render_template('index.html', msg = msg)
+			return redirect(url_for('index', name = session['username']))
 		else:
 			msg = 'Incorrect username / password !'
 	return render_template('login.html', msg = msg)
@@ -82,10 +85,7 @@ def register():
 			msg = 'Account already exists!'
 		elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
 			msg = 'Invalid email address!'
-		#elif not re.match(r'[A-Za-z]+', firstname):
-			#msg = 'First name must contain only characters!'
-		#elif not re.match(r'[A-Za-z]+', lastname):
-			#msg = 'Last name must contain only characters!'
+
 		elif not password or not email or not firstname or not lastname or not gender or not dob:
 			msg = 'Please fill out all the fields!'
 		else:
@@ -93,12 +93,97 @@ def register():
 			app.logger.info('passing details')
 			account = collegeDAO.createStudent(data)
 			msg = 'You have successfully registered!'
-			render_template('register.html', msg = msg)
-			#return redirect(url_for('login'), msg = msg)
+        			
 	elif request.method == 'POST':
-		msg = 'Please fill out the form!'
-		
+		msg = 'Please fill out the form!'	
 	return render_template('register.html', msg = msg)
+
+# get all modules route
+# curl http://127.0.0.1:5000/modules
+@app.route('/modules')
+def getAllMod():
+    if not 'username' in session:
+        app.logger.info('Access not authorised')
+        abort(401)
+    app.logger.info('Get all modules')
+    return jsonify(collegeDAO.getAllMod())
+
+# create module, returns created module info
+@app.route('/modules', methods=['POST'])
+def createMod():
+   if not 'username' in session:
+        app.logger.info('Access not authorised')
+        abort(401)
+   if not request.json:
+        app.logger.info('Request format not json')
+        abort(400)
+		
+   module = {
+      "moduleCode": request.json["moduleCode"],
+       "moduleName": request.json["moduleName"],
+       "location": request.json["location"],
+       "credits": request.json["credits"]
+    }
+   app.logger.info('Created module %s', module)
+   return jsonify(collegeDAO.createMod(module))
+
+# find By modulecode route
+@app.route('/modules/moduleCode')
+def findModutById(moduleCode):
+   if not 'username' in session:
+      app.logger.info('Access not authorised')
+      abort(401)
+   app.logger.info('Get module with moduleCode %s', moduleCode)
+   return jsonify(collegeDAO.findModById(moduleCode))
+
+# update module, returns updated module info
+@app.route('/modules/<string:moduleCode>', methods=['PUT'])
+def updateMod(moduleCode):
+   app.logger.info('Updated module flask', moduleCode)
+   if not 'username' in session:
+      app.logger.info('Access not authorised')
+      abort(401)
+   if not request.json:
+      app.logger.info('Request format not json')
+      abort(400)
+   foundMod = collegeDAO.findModById(moduleCode)
+   # print(foundMod)
+   if foundMod == {}:
+      app.logger.info('moduleCode %s not found', moduleCode)
+      return jsonify({}), 404
+   currentMod = foundMod
+   if 'moduleName' in request.json:
+      currentMod['moduleName'] = request.json['moduleName']
+   if 'location' in request.json:
+      currentMod['location'] = request.json['location']
+   if 'credits' in request.json:
+      currentMod['credits'] = request.json['credits']
+   collegeDAO.updateMod(currentMod)
+   app.logger.info('Updated module %s', currentMod)
+   return jsonify(currentMod)
+
+# delete module, returns True/False if delete was done
+@app.route('/modules/<string:moduleCode>', methods=['DELETE'])
+def deleteMod(moduleCode):
+   if not 'username' in session:
+      app.logger.info('Access not authorised')
+      abort(401)
+   # check if module exists
+   foundMod = collegeDAO.findModById(moduleCode)
+   app.logger.info('mod code found ', foundMod)
+   if foundMod == {}:
+      app.logger.info('moduleCode %s not found', moduleCode)
+      return jsonify({"done": False}), 404
+   try:
+      collegeDAO.deleteMod(moduleCode)
+      app.logger.info('Deleted module %s', foundMod)
+      return jsonify({"done": True})
+   except:
+      app.logger.info('Cannot delete moduleCode %s', moduleCode)
+      return jsonify({"done": False})
+
+    
+
 
 if __name__ == "__main__":
     app.run(debug=True)

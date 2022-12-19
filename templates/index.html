@@ -1,4 +1,4 @@
-<!-- Store this code in 'index.html' file inside the 'templates' folder-->
+<!--Home page after login-->
 
 <html>
 	<head>
@@ -29,6 +29,327 @@
 			</table>
 		 </div>
 
-		
+		  <!-- Table for displaying Home page -->
+		  <div id="displayHome">
+			<div style="width:900px; margin:0 auto;">
+			   <h2 class="h2">Home</h2>
+			   <table id="HomeTable" class="table">
+				  <tr>
+					 <td>
+						<!-- Link to module display table -->
+						<button onclick="showModDisplay()" type="button" class="btn btn-success">All Modules</button>
+					 </td>
+				  </tr>
+			   </table>
+			</div>
+		 </div>
+		 <hr>
+
+		   <!-- Table for displaying module data -->
+		   <div id="displayMod" style="display:none">
+			<div style="width:900px; margin:0 auto;">
+			   <h2 class="h2">Modules</h2>
+			   <button onclick="showHome()" type="button" class="btn btn-primary">Home</button>
+			   <button onclick="showModCreate()" type="button" class="btn btn-success">Add New Module</button>
+			   <table id="modTable" class="table table-dark">
+				  <thead class="thead-dark">
+					 <tr>
+						<th scope="col">Module Code</th>
+						<th scope="col">Module Name</th>
+						<th scope="col">Location</th>
+						<th scope="col">Credits</th>
+						<th scope="col">Options</th>
+					 </tr>
+				  </thead>
+			   </table>
+			</div>
+		 </div>
+
+		  <!-- Form for creating new and updating existing module data -->
+		  <div id="createUpdateMod" style="display:none">
+			<div style="width:900px; margin:0 auto;">
+			   <h2 id="titleCreateMod" class="h2">Create Module</h2>
+			   <h2 id="titleUpdateMod" class="h2">Update Module</h2>
+			   <button onclick="showHome()" type="button" class="btn btn-primary">Home</button>
+			   <button onclick="showModDisplay()" type="button" class="btn btn-success">All Modules</button>
+			   <table id="createUpdateModForm" class="table table-dark">
+				  <thead class="thead-dark">
+					 <tr>
+						<th scope="col">Details</th>
+						<th scope="col">Module Input</th>
+					 </tr>
+				  </thead>
+				  <tr>
+					 <th scope="col">ModID</th>
+					 <td><input type="text" class="form-control" name="moduleCode" placeholder="enter module code" required></td>
+				  </tr>
+				  <tr>
+					 <th scope="col">Name</th>
+					 <td><input type="text" class="form-control" name="moduleName" placeholder="enter module name" required></td>
+				  </tr>
+				  <tr>
+					 <th scope="col">Location</th>
+					 <td><input type="text" class="form-control" name="location" placeholder="enter location" required></td>
+				  </tr>
+				  <tr>
+					 <th scope="col">Credits</th>
+					 <td><input type="number" class="form-control" name="credits" placeholder="enter credits" required></td>
+				  </tr>
+				  <tr>
+					 <td></td>
+					 <td>
+						<button id="createMod" onclick="doCreateMod()" type="button" class="btn btn-success">Create</button>
+						<button id="updateMod" onclick="doUpdateMod()"type="button" class="btn btn-info">Update</button>
+					 </td>
+				  </tr>
+			   </table>
+			</div>
+		 </div>
+	  
+		 <script>
+
+			logoutForm = document.getElementById("logout-form");
+			host = window.location.origin
+			logoutForm.action = host + "/logout";
+	  
+			function showModDisplay() {
+			   document.getElementById('displayHome').style.display = "none"
+			   document.getElementById('displayMod').style.display = "block"
+			   document.getElementById('createUpdateMod').style.display = "none"
+			   
+			}
+
+			function showModCreate(){
+				
+        		clearModForm()
+
+        		document.getElementById('displayHome').style.display = "none"
+        		document.getElementById('displayMod').style.display = "none"
+        		document.getElementById('createUpdateMod').style.display = "block"
+        		// title
+        		document.getElementById('titleCreateMod').style.display = "block"
+        		document.getElementById('titleUpdateMod').style.display = "none"
+        		// buttons
+        		document.getElementById('createMod').style.display = "block"
+        		document.getElementById('updateMod').style.display = "none"
+
+				console.log("complete showModCreate()")
+      		}
+// for updating 1
+			function showModUpdate(thisElem) {
+				console.log("in showModUpdate")
+        		var rowElement = thisElem.parentNode.parentNode;
+				console.log(rowElement)
+        		var module = readModFromRow(rowElement)
+        		populateModForm(module)		
+        		document.getElementById('displayHome').style.display = "none"
+        		document.getElementById('displayMod').style.display = "none"
+        		document.getElementById('createUpdateMod').style.display = "block"
+        		
+        		// title
+        		document.getElementById('titleCreateMod').style.display = "none"
+        		document.getElementById('titleUpdateMod').style.display = "block"
+        		// buttons
+        		document.getElementById('createMod').style.display = "none"
+        		document.getElementById('updateMod').style.display = "block"
+            }
+// for updating 2
+			function readModFromRow(rowElement) {
+         		var mod = {}
+				console.log("readModFromRow")
+         		// modCode is mod table row id omitting the first character 'd'
+         		mod.moduleCode = rowElement.getAttribute("id");
+				mod.moduleCode = rowElement.cells[0].firstChild.textContent
+         		mod.moduleName = rowElement.cells[1].firstChild.textContent
+         		mod.location = rowElement.cells[2].firstChild.textContent
+         		mod.credits = rowElement.cells[3].firstChild.textContent
+				console.log("readModFromRow ", mod)
+         		return mod
+      		}
+// for updating 3
+            function populateModForm(mod) {
+         		var form = document.getElementById('createUpdateModForm')
+         		form.querySelector('input[name="moduleCode"]').value = mod.moduleCode
+         		form.querySelector('input[name="moduleCode"]').disabled = true
+
+         		form.querySelector('input[name="moduleName"]').value = mod.moduleName
+         		form.querySelector('input[name="location"]').value = mod.location
+         		form.querySelector('input[name="credits"]').value = mod.credits
+      		}
+
+			function clearModForm() {
+				console.log("in clearModForm()")
+        		var form = document.getElementById('createUpdateModForm')
+        		form.querySelector('input[name="moduleCode"]').value = ''
+        		//form.querySelector('input[name="moduleCode"]').disabled = true		
+        		form.querySelector('input[name="moduleName"]').value = ''
+        		form.querySelector('input[name="location"]').value = ''
+        		form.querySelector('input[name="credits"]').value = ''
+				console.log("in form cleared")
+        	}
+// for updating 4
+        	function doUpdateMod() {
+        	var module = getModFromForm()
+        	if (validateModForm(module) == 1) {
+        	   updateModServer(module)         
+        	   }
+        	}
+
+			function updateModServer(module) {
+				console.log("in updateModServer", module.moduleCode)
+				console.log(JSON.stringify(module))
+        		// ajax updateMod
+        		host = window.location.origin
+        		$.ajax({
+        		   url: host + "/modules/" + module.moduleCode,
+        		   data: JSON.stringify(module),
+        		   method: "PUT",
+        		   dataType: "JSON",
+        		   contentType: "application/json; charset=utf-8",
+        		   success: function (result) {
+        		      console.log(result)
+        		      updateModTableRow(module)
+        		      showModDisplay()
+        		      clearModForm()
+        		   },
+        		   error: function (xhr, status, error) {
+        		      console.log("error" + error)
+        		   }
+        		})
+      		}
+
+			function updateModTableRow(module) {
+				var rowElement = document.getElementById(module.moduleCode)
+				rowElement.cells[0].firstChild.textContent = module.moduleCode
+        		rowElement.cells[1].firstChild.textContent = module.moduleName
+        		rowElement.cells[2].firstChild.textContent = module.location
+        		rowElement.cells[3].firstChild.textContent = module.credits
+        		console.log("updateModTableRow")
+      		}
+
+      		function doCreateMod() {
+                var module = getModFromForm()
+                //console.log("doCreateMod is ", module)
+                console.log(JSON.stringify(module))
+                if (validateModForm(module) == 1) {
+                   // ajax createMod
+                   host = window.location.origin
+                   $.ajax({
+                      url: host + '/modules',
+                      data: JSON.stringify(module),
+                      method: 'POST',
+                      datatype: 'JSON',
+                      contentType: "application/json; charset=utf-8",
+                      success: function () {
+						 console.log("Module " +module.moduleCode + " created")
+                         //module.moduleCode = result.moduleCode
+                         addModtoTable(module)
+                         showModDisplay()
+                         clearModForm()
+                      },
+                      error: function (xhr, status, error) {
+                         console.log("error " + error)
+                      }
+                   })
+                }       
+            }
+
+			function doModDelete(thisElem){
+        		var tableElement = document.getElementById('modTable');
+        		var rowElement = thisElem.parentNode.parentNode;
+        		var index = rowElement.rowIndex;
+				var mod = rowElement.getAttribute("id");
+				console.log('ModuleCode ', mod)
+        		// ajax deleteMod
+        		host = window.location.origin
+        		$.ajax({
+        		   url: host + "/modules/"+mod,
+        		   method:"DELETE",
+        		   dateType:"JSON",
+        		   success:function(result){
+        		      console.log(result)
+        		      if (result.done == false){
+        		         alert("WARNING: Cannot delete module with associated student!")
+        		      } else {
+        		         tableElement.deleteRow(index);
+        		         console.log("Module " + mod + " deleted")
+        		      }
+        		   },
+        		   error:function(xhr,status,error){
+        		      console.log(error)
+        		   }
+        		})
+      		}
+
+				function showHome() {
+         			document.getElementById('displayHome').style.display = "block"
+         			document.getElementById('displayMod').style.display = "none"
+         			document.getElementById('createUpdateMod').style.display = "none"
+         
+      			}
+
+      			function getModFromForm(){
+                    var form = document.getElementById('createUpdateModForm')
+                    var mod = {}
+                    mod.moduleCode = form.querySelector('input[name="moduleCode"]').value
+                    mod.moduleName = form.querySelector('input[name="moduleName"]').value
+                    mod.location = form.querySelector('input[name="location"]').value
+                    mod.credits = parseInt(form.querySelector('input[name="credits"]').value)
+                    //console.log(mod)
+                    console.log('Mod code = '+mod.moduleCode)
+                    return mod
+                }
+
+      			function validateModForm(d){
+         			// Check if any module form fields are are empty. Code adapted from
+         			// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+         			if (d.moduleCode.length == 0 || d.moduleName.length == 0 || d.location.length == 0 || Number.isNaN(d.credits) == true ){
+         			   alert("WARNING: INPUT ERROR Blank module form field submitted!")
+         			   return 0
+         			}
+         			return 1
+      			}
+
+				function populateModTable(){
+        			// ajax getAllMod
+        			host = window.location.origin
+        			$.ajax({
+        			   url: host + '/modules',
+        			   method: 'GET',
+        			   datatype: 'JSON',
+        			   success: function (results) {
+        			      for (mod of results) {
+        			         addModtoTable(mod)
+        			      }
+        			   },
+        			   error: function (xhr, status, error) {
+        			      console.log("error " + error + " code:" + status)
+        			   }
+        			})
+      			}
+
+				function addModtoTable(mod){
+        	    	// console.log("add to mod table working")
+        	    	var tableElem = document.getElementById('modTable')
+        	    	var rowElem = tableElem.insertRow(-1)
+        	    	rowElem.setAttribute('id', mod.moduleCode)
+        	    	var cell1 = rowElem.insertCell(0);
+        	    	cell1.innerHTML = mod.moduleCode
+        	    	var cell2 = rowElem.insertCell(1);
+        	    	cell2.innerHTML = mod.moduleName
+        	    	var cell3 = rowElem.insertCell(2);
+        	    	cell3.innerHTML = mod.location
+        	    	var cell4 = rowElem.insertCell(3);
+        	    	cell4.innerHTML = mod.credits
+        	    	var cell5 = rowElem.insertCell(4);
+        	    	cell5.innerHTML = '<button onclick="showModUpdate(this)"  type="button" class="btn btn-info">Update</button>'
+        	    	var cell6 = rowElem.insertCell(5);
+        	    	cell6.innerHTML = '<button onclick="doModDelete(this)" type="button" class="btn btn-danger">Delete</button>'
+      			}
+
+
+	  			populateModTable();
+
+		</script>
 	</body>
 </html>
