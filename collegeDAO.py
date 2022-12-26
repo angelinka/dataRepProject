@@ -4,16 +4,15 @@ import config as cfg
 
 # Class object for Database Access Object (DAO)
 class CollegeDAO:
- 
-    # Create database connection pool
+    '''
+    # Initialising database 
     def __init__(self):
         host=cfg.mysql['host']
         user=cfg.mysql['username']
         password=cfg.mysql['password']
         database=cfg.mysql['database']
-         #pool_name='my_connection_pool',
-         #pool_size=5
-    
+    '''     
+
     def getcursor(self): 
         self.connection = mysql.connector.connect(
             host=cfg.mysql['host'],
@@ -71,7 +70,7 @@ class CollegeDAO:
         return lastRowId
       
 
-         # Create module, returns moduleCode of new module
+    # Create module, returns moduleCode of new module
     def createMod(self, mod):
         cursor = self.getcursor()
         sql = "insert into modules (moduleCode, moduleName, location, credits) values (%s, %s, %s, %s)"
@@ -103,7 +102,7 @@ class CollegeDAO:
         return returnArray
 
       
-          # Return info on module for given moduleCode
+    # Return info on module for given moduleCode
     def findModById(self, moduleCode):
         cursor = self.getcursor()
         sql = 'select * from modules where moduleCode = %s'
@@ -150,10 +149,50 @@ class CollegeDAO:
               mod[colName] = value
         return mod
 
+    #Adding entry to enrollment table
+    def enroll(self, data):
+        cursor = self.getcursor()
+        sql = "insert into enrolment (studentID, moduleCode) VALUES (%s, %s)"
+        values = data
+        cursor.execute(sql, values)
+        self.connection.commit()
+        lastRowId = cursor.lastrowid
+        self.closeAll()
+        return lastRowId
+    # getting all modules for current student ID
+    def getCurrentMod(self, id):
+        cursor = self.getcursor()
+        sql = '''
+                select m.moduleCode, m.moduleName, m.location, m.credits
+                from modules m
+                join enrolment e on m.moduleCode = e.moduleCode
+                join students s on (e.studentID = s.studentID)
+                where e.studentID = %s
+                '''
+        values = [id]
+        cursor.execute(sql, values)
+        results = cursor.fetchall()
+        returnArray = []
+        # print(results)
+        for result in results:
+           resultAsDict = self.convertModToDict(result)
+           returnArray.append(resultAsDict)
+        self.closeAll()
+        return returnArray
+    #deleting entry from enrollement table based on moduleCode
+    def unenroll(self, moduleCode):
+        cursor = self.getcursor()
+        sql = 'delete from enrolment where moduleCode = %s'
+        values = [moduleCode]
+        cursor.execute(sql, values)
+        self.connection.commit()
+        self.closeAll()
+        return {}
+
+
 collegeDAO = CollegeDAO()
 
 if __name__ == "__main__":
     print ('sanity')
-    data = ['as@as.as', 'as']
-    #data = {'email': 'as@as.as', 'password':'as'}
-    collegeDAO.verify(data)
+    #data = ['as@as.as', 'as']
+    #collegeDAO.verify(data)

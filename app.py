@@ -182,8 +182,45 @@ def deleteMod(moduleCode):
       app.logger.info('Cannot delete moduleCode %s', moduleCode)
       return jsonify({"done": False})
 
-    
+# update module, returns updated module info
+@app.route('/enroll/<string:moduleCode>', methods=['PUT'])
+def enrollMod(moduleCode):
+   id= session['id']
+   #app.logger.info("Student ID: " +id)
+   app.logger.info(moduleCode)
+   data = [id, moduleCode]
+   try:
+      collegeDAO.enroll(data)
+      app.logger.info("Successfully enrolled!")
+      return jsonify({"done": True})
+   except:
+      app.logger.info("Already enrolled in module ", moduleCode)
+      return jsonify({"done": False})
 
+# getting modules in which current student is enrolled   
+@app.route('/enrolled', methods=['GET'])
+def getCurrentMod():
+   if not 'username' in session:
+        app.logger.info('Access not authorised')
+        abort(401)
+   app.logger.info('Get all modules')
+   id= session['id']
+   return jsonify(collegeDAO.getCurrentMod(id))
+
+# deleting/unenrolling from the module
+@app.route('/enrolled/<string:moduleCode>', methods=['DELETE'])
+def unenroll(moduleCode):
+   if not 'username' in session:
+      app.logger.info('Access not authorised')
+      abort(401)
+   # check if entry exists
+   try:
+      collegeDAO.unenroll(moduleCode)
+      app.logger.info('Unenrolled from module %s', moduleCode)
+      return jsonify({"done": True})
+   except:
+      app.logger.info('Cannot unenroll from module %s', moduleCode)
+      return jsonify({"done": False})
 
 if __name__ == "__main__":
     app.run(debug=True)

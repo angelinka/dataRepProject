@@ -33,17 +33,23 @@
 		  <div id="displayHome">
 			<div style="width:900px; margin:0 auto;">
 			   <h2 class="h2">Home</h2>
-			   <table id="HomeTable" class="table">
-				  <tr>
-					 <td>
-						<!-- Link to module display table -->
-						<button onclick="showModDisplay()" type="button" class="btn btn-success">All Modules</button>
-					 </td>
-				  </tr>
-			   </table>
+			   <h3>Your current modules:</h3>
+				<!-- Link to module display table -->
+				<button onclick="showModDisplay()" type="button" class="btn btn-success">All Modules</button>
+				<table id="enrolledTable" class="table table-dark">
+					<thead class="thead-dark">
+					   <tr>
+						  <th scope="col">Module Code</th>
+						  <th scope="col">Module Name</th>
+						  <th scope="col">Location</th>
+						  <th scope="col">Credits</th>
+						  <th scope="col">Unenroll</th>
+					   </tr>
+					</thead>
+				 </table>
 			</div>
 		 </div>
-		 <hr>
+		
 
 		   <!-- Table for displaying module data -->
 		   <div id="displayMod" style="display:none">
@@ -58,7 +64,9 @@
 						<th scope="col">Module Name</th>
 						<th scope="col">Location</th>
 						<th scope="col">Credits</th>
-						<th scope="col">Options</th>
+						<th scope="col">Update</th>
+						<th scope="col">Delete</th>
+						<th scope="col">Enroll</th>
 					 </tr>
 				  </thead>
 			   </table>
@@ -157,7 +165,7 @@
 			function readModFromRow(rowElement) {
          		var mod = {}
 				console.log("readModFromRow")
-         		// modCode is mod table row id omitting the first character 'd'
+         		// modCode is mod table row id
          		mod.moduleCode = rowElement.getAttribute("id");
 				mod.moduleCode = rowElement.cells[0].firstChild.textContent
          		mod.moduleName = rowElement.cells[1].firstChild.textContent
@@ -181,7 +189,7 @@
 				console.log("in clearModForm()")
         		var form = document.getElementById('createUpdateModForm')
         		form.querySelector('input[name="moduleCode"]').value = ''
-        		//form.querySelector('input[name="moduleCode"]').disabled = true		
+        		form.querySelector('input[name="moduleCode"]').disabled = false		
         		form.querySelector('input[name="moduleName"]').value = ''
         		form.querySelector('input[name="location"]').value = ''
         		form.querySelector('input[name="credits"]').value = ''
@@ -194,7 +202,7 @@
         	   updateModServer(module)         
         	   }
         	}
-
+// updating DB
 			function updateModServer(module) {
 				console.log("in updateModServer", module.moduleCode)
 				console.log(JSON.stringify(module))
@@ -217,7 +225,7 @@
         		   }
         		})
       		}
-
+// updating table on the page
 			function updateModTableRow(module) {
 				var rowElement = document.getElementById(module.moduleCode)
 				rowElement.cells[0].firstChild.textContent = module.moduleCode
@@ -226,7 +234,7 @@
         		rowElement.cells[3].firstChild.textContent = module.credits
         		console.log("updateModTableRow")
       		}
-
+// creating new module in DB
       		function doCreateMod() {
                 var module = getModFromForm()
                 //console.log("doCreateMod is ", module)
@@ -253,7 +261,7 @@
                    })
                 }       
             }
-
+// deleting module from DB
 			function doModDelete(thisElem){
         		var tableElement = document.getElementById('modTable');
         		var rowElement = thisElem.parentNode.parentNode;
@@ -280,36 +288,102 @@
         		   }
         		})
       		}
+// Creating entry in enrolment table in DB
+			function doEnroll(thisElem){
+        		var tableElement = document.getElementById('modTable');
+        		var rowElement = thisElem.parentNode.parentNode;
+        		var index = rowElement.rowIndex;
+				var mod = rowElement.getAttribute("id");
+				
+   				var cells = rowElement.getElementsByTagName("td")
+				var module = {}
+				module.moduleCode = cells[0].innerHTML
+				module.moduleName = cells[1].innerHTML
+				module.location = cells[2].innerHTML
+				module.credits = cells[3].innerHTML
+				
+        		host = window.location.origin
+        		$.ajax({
+        		   url: host + "/enroll/"+mod,
+				   data: JSON.stringify( mod),
+        		   method:"PUT",
+        		   dateType:"JSON",
+        		   success:function(result){
+					console.log(result)
+        		    if (result.done == false){
+        		    	alert("WARNING: Already enrolled!")
+        		    } else {
+        		        alert("You are enrolled in module "+mod)
+						addEnrollTable(module)
+        		    }
+        		   },
+        		   error:function(xhr,status,error){
+        		      console.log(error)
+        		   }
+        		})
+      		}
+// deleting entry in enrolment table in DB
+			function doUnenroll(thisElem){
+				var tableElement = document.getElementById('enrolledTable');
+        		var rowElement = thisElem.parentNode.parentNode;
+        		var index = rowElement.rowIndex;
+				var mod = rowElement.getAttribute("id");
+				console.log('ModuleCode ', mod)
+        		// ajax deleteMod
+        		host = window.location.origin
+        		$.ajax({
+        		   url: host + "/enrolled/"+mod,
+        		   method:"DELETE",
+        		   dateType:"JSON",
+        		   success:function(result){
+        		      console.log(result)
+        		      if (result.done == false){
+        		         alert("WARNING: Cannot delete module with associated student!")
+        		      } else {
+        		         tableElement.deleteRow(index);
+        		         console.log("Unenrolled from " + mod)
+        		      }
+        		   },
+        		   error:function(xhr,status,error){
+        		      console.log(error)
+        		   }
+        		})
+			}
 
-				function showHome() {
-         			document.getElementById('displayHome').style.display = "block"
-         			document.getElementById('displayMod').style.display = "none"
-         			document.getElementById('createUpdateMod').style.display = "none"
+
+			function showHome() {
+         		document.getElementById('displayHome').style.display = "block"
+         		document.getElementById('displayMod').style.display = "none"
+         		document.getElementById('createUpdateMod').style.display = "none"
          
-      			}
+      		}
 
-      			function getModFromForm(){
-                    var form = document.getElementById('createUpdateModForm')
-                    var mod = {}
-                    mod.moduleCode = form.querySelector('input[name="moduleCode"]').value
-                    mod.moduleName = form.querySelector('input[name="moduleName"]').value
-                    mod.location = form.querySelector('input[name="location"]').value
-                    mod.credits = parseInt(form.querySelector('input[name="credits"]').value)
-                    //console.log(mod)
-                    console.log('Mod code = '+mod.moduleCode)
-                    return mod
-                }
+      		function getModFromForm(){
+                var form = document.getElementById('createUpdateModForm')
+                var mod = {}
+                mod.moduleCode = form.querySelector('input[name="moduleCode"]').value
+                mod.moduleName = form.querySelector('input[name="moduleName"]').value
+                mod.location = form.querySelector('input[name="location"]').value
+                mod.credits = parseInt(form.querySelector('input[name="credits"]').value)
+                //console.log(mod)
+                console.log('Mod code = '+mod.moduleCode)
+                return mod
+            }
 
-      			function validateModForm(d){
-         			// Check if any module form fields are are empty. Code adapted from
-         			// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
-         			if (d.moduleCode.length == 0 || d.moduleName.length == 0 || d.location.length == 0 || Number.isNaN(d.credits) == true ){
-         			   alert("WARNING: INPUT ERROR Blank module form field submitted!")
-         			   return 0
-         			}
-         			return 1
-      			}
-
+      		function validateModForm(d){
+         		// Check if any module form fields are are empty. Code adapted from
+         		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+         		if (d.moduleCode.length == 0 || d.moduleName.length == 0 || d.location.length == 0 || Number.isNaN(d.credits) == true ){
+         		   alert("WARNING: INPUT ERROR Blank module form field submitted!")
+         		   return 0
+         		}
+         		return 1
+      		}
+// getting all modules from DB
+			function ready(){
+				// deleay was added as otherwise there is an issue of loading two table at the same time
+				var timeDelay = 1000;           // MILLISECONDS (1 SECOND).
+        		setTimeout(populateModTable, timeDelay);  // MAKE THE AJAX CALL AFTER A FEW SECONDS DELAY.
 				function populateModTable(){
         			// ajax getAllMod
         			host = window.location.origin
@@ -327,28 +401,65 @@
         			   }
         			})
       			}
+			}
+			function addModtoTable(mod){
+        	    // console.log("add to mod table working")
+        	    var tableElem = document.getElementById('modTable')
+        	    var rowElem = tableElem.insertRow(-1)
+        	    rowElem.setAttribute('id', mod.moduleCode)
+        	    var cell1 = rowElem.insertCell(0);
+        	    cell1.innerHTML = mod.moduleCode
+        	    var cell2 = rowElem.insertCell(1);
+        	    cell2.innerHTML = mod.moduleName
+        	    var cell3 = rowElem.insertCell(2);
+        	    cell3.innerHTML = mod.location
+        	    var cell4 = rowElem.insertCell(3);
+        	    cell4.innerHTML = mod.credits
+        	    var cell5 = rowElem.insertCell(4);
+        	    cell5.innerHTML = '<button onclick="showModUpdate(this)"  type="button" class="btn btn-info">Update</button>'
+        	    var cell6 = rowElem.insertCell(5);
+        	    cell6.innerHTML = '<button onclick="doModDelete(this)" type="button" class="btn btn-danger">Delete</button>'
+				var cell7 = rowElem.insertCell(6);
+        	    cell7.innerHTML = '<button onclick="doEnroll(this)"  type="button" class="btn btn-success">Enroll</button>'
+      		}
+// geting modules in which current user/student is enrolled
+			function populateEnrollTable(){
+        		// ajax getAllMod
+        		host = window.location.origin
+        		$.ajax({
+        		   url: host + '/enrolled',
+        		   method: 'GET',
+        		   datatype: 'JSON',
+        		   success: function (results) {
+        		      for (mod of results) {
+						addEnrollTable(mod)
+        		      }
+        		   },
+        		   error: function (xhr, status, error) {
+        		      console.log("error " + error + " code:" + status)
+        		   }
+        		})
+      		}
 
-				function addModtoTable(mod){
-        	    	// console.log("add to mod table working")
-        	    	var tableElem = document.getElementById('modTable')
-        	    	var rowElem = tableElem.insertRow(-1)
-        	    	rowElem.setAttribute('id', mod.moduleCode)
-        	    	var cell1 = rowElem.insertCell(0);
-        	    	cell1.innerHTML = mod.moduleCode
-        	    	var cell2 = rowElem.insertCell(1);
-        	    	cell2.innerHTML = mod.moduleName
-        	    	var cell3 = rowElem.insertCell(2);
-        	    	cell3.innerHTML = mod.location
-        	    	var cell4 = rowElem.insertCell(3);
-        	    	cell4.innerHTML = mod.credits
-        	    	var cell5 = rowElem.insertCell(4);
-        	    	cell5.innerHTML = '<button onclick="showModUpdate(this)"  type="button" class="btn btn-info">Update</button>'
-        	    	var cell6 = rowElem.insertCell(5);
-        	    	cell6.innerHTML = '<button onclick="doModDelete(this)" type="button" class="btn btn-danger">Delete</button>'
-      			}
+			function addEnrollTable(mod){
+        	    // console.log("add to mod table working")
+        	    var tableElem = document.getElementById('enrolledTable')
+        	    var rowElem = tableElem.insertRow(-1)
+        	    rowElem.setAttribute('id', mod.moduleCode)
+        	    var cell1 = rowElem.insertCell(0);
+        	    cell1.innerHTML = mod.moduleCode
+        	    var cell2 = rowElem.insertCell(1);
+        	    cell2.innerHTML = mod.moduleName
+        	    var cell3 = rowElem.insertCell(2);
+        	    cell3.innerHTML = mod.location
+        	    var cell4 = rowElem.insertCell(3);
+        	    cell4.innerHTML = mod.credits
+        	    var cell5 = rowElem.insertCell(4);
+        	    cell5.innerHTML = '<button onclick="doUnenroll(this)" type="button" class="btn btn-danger">Unenroll</button>'
+      		}
+			populateEnrollTable();
 
-
-	  			populateModTable();
+	  		ready();
 
 		</script>
 	</body>
