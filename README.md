@@ -3,6 +3,7 @@
 ## Description
 
 This repository was created to complete the project for Data Representation module.
+
 Task: Write a program that demonstrates that you understand creating and consuming RESTful APIs.
 
 I decided to create web app where students can register and enroll in modules. There is a functionality to perform CRUD operations on the data. 
@@ -17,6 +18,7 @@ Repository Contents:
 5. collegeDAO.py - deals with Database, connections and converting formats
 6. initdb.sql - file which is used to create DB and add some data to it
 7. requirements.txt
+8. config_temp.py
 
 Folders:
 1. static:
@@ -43,6 +45,12 @@ Folders:
 2. Activate virtual environment
 3. `set FLASK_APP=app`
 4. `flask run` In your browser navigate to http://127.0.0.1:5000/
+
+## This web app is hosted online on pythonanywhere.com
+http://angelinka.pythonanywhere.com/
+
+### Side note: 
+A few improvements could be made on this web app, mainly including better exception handling, cleaner code and better functionality. However as time was of the essence I hope it will suffice to demonstrate my overall understanding of Flask & RESTful API.
 
 ## Contact
 
